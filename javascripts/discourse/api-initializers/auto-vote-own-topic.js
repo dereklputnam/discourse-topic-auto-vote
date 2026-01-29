@@ -1,4 +1,4 @@
-// Auto Vote Own Topic v1.3 - with appEvents for smooth UI update
+// Auto Vote Own Topic v1.4 - with direct DOM manipulation for instant UI
 import { apiInitializer } from "discourse/lib/api";
 import { ajax } from "discourse/lib/ajax";
 
@@ -16,6 +16,40 @@ export default apiInitializer("1.0", (api) => {
   };
 
   log("Initializing auto-vote component for user:", currentUser.username);
+
+  // Function to update the vote UI via DOM manipulation
+  const updateVoteUI = (voteCount) => {
+    log("Updating vote UI via DOM manipulation");
+
+    // Update vote count display
+    const voteCountEl = document.querySelector(".vote-count-number");
+    if (voteCountEl) {
+      voteCountEl.textContent = voteCount;
+      log("Updated vote count to:", voteCount);
+    }
+
+    // Update vote button to show "voted" state
+    const voteButton = document.querySelector(".vote-button");
+    if (voteButton) {
+      // Remove "nonvote" class and add "vote" class
+      voteButton.classList.remove("nonvote");
+      voteButton.classList.add("vote");
+      log("Updated vote button classes");
+
+      // Update button text if it contains vote text
+      const buttonSpan = voteButton.querySelector("span");
+      if (buttonSpan && buttonSpan.textContent.toLowerCase().includes("vote")) {
+        buttonSpan.textContent = "Voted";
+      }
+    }
+
+    // Also update the wrapper
+    const votingWrapper = document.querySelector(".voting-wrapper");
+    if (votingWrapper) {
+      votingWrapper.classList.remove("nonvote");
+      votingWrapper.classList.add("vote");
+    }
+  };
 
   const autoVotedTopics = new Set();
 
@@ -88,42 +122,36 @@ export default apiInitializer("1.0", (api) => {
 
       log("Vote cast successfully for topic:", topicId, response);
 
-      // Try multiple approaches to update the UI smoothly
+      // Update the UI using multiple approaches for reliability
       try {
         const topicController = api.container.lookup("controller:topic");
         const topic = topicController?.model;
 
+        // Get the new vote count from the response, or calculate it
+        const newVoteCount = response.vote_count ?? (topic?.vote_count || 0) + 1;
+
         if (topic && topic.id === topicId) {
-          // Update local state immediately for instant feedback
-          topic.set("user_voted", true);
-          topic.set("vote_count", (topic.vote_count || 0) + 1);
-          log("Updated topic model properties");
+          // Update topic model using direct assignment (like the voting plugin does)
+          topic.vote_count = newVoteCount;
+          topic.user_voted = true;
+          log("Updated topic model: vote_count =", newVoteCount, "user_voted = true");
 
-          // Try appEvents to notify the voting plugin
-          const appEvents = api.container.lookup("service:app-events");
-          if (appEvents) {
-            log("Triggering appEvents for vote update");
-            appEvents.trigger("topic:voted", { topicId, voted: true });
-            appEvents.trigger("topic-stats:update", { topicId });
+          // Update currentUser voting state (like the voting plugin does)
+          if (response.can_vote !== undefined) {
+            currentUser.votes_exceeded = !response.can_vote;
           }
-
-          // Give Ember a moment to process the property changes
-          setTimeout(() => {
-            // If the vote button still doesn't show as voted, try router refresh
-            const router = api.container.lookup("service:router");
-            if (router && router.refresh) {
-              log("Refreshing route to ensure vote UI is updated");
-              router.refresh();
-            }
-          }, 100);
-        } else {
-          // Fallback if topic model not found
-          log("Topic model not found, reloading page");
-          window.location.reload();
+          if (response.votes_left !== undefined) {
+            currentUser.votes_left = response.votes_left;
+          }
         }
+
+        // Immediately update DOM for instant visual feedback
+        updateVoteUI(newVoteCount);
+
       } catch (e) {
-        log("Error updating UI, reloading page:", e);
-        window.location.reload();
+        log("Error updating UI:", e);
+        // Even if model update fails, try DOM update
+        updateVoteUI(1);
       }
 
       return true;
