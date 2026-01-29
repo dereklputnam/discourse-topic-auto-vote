@@ -3,4 +3,5 @@ en:
     description: "Automatically casts a vote for users on topics they create in voting-enabled categories."
     settings:
       auto_vote_categories: "Categories where auto-voting is enabled (leave empty for all voting-enabled categories)"
+      excluded_groups: "Groups excluded from auto self-voting (users in these groups will not have votes automatically cast)"
       auto_vote_on_visit: "Retroactively auto-vote on a user's own older topics when they visit them"

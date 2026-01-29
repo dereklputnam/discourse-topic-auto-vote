@@ -5,6 +5,13 @@ auto_vote_categories:
   description:
     en: "Categories where auto-voting is enabled (leave empty for all voting-enabled categories)"
 
+excluded_groups:
+  type: list
+  list_type: group
+  default: ""
+  description:
+    en: "Groups excluded from auto self-voting (users in these groups will not have votes automatically cast)"
+
 auto_vote_on_visit:
   type: bool
   default: false

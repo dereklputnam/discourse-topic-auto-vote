@@ -11,6 +11,27 @@ export default apiInitializer("1.0", (api) => {
   const autoVotedTopics = new Set();
   const preVotedTopics = new Set();
 
+  const isUserExcluded = () => {
+    if (!settings.excluded_groups || settings.excluded_groups.length === 0) {
+      return false;
+    }
+
+    const excludedGroups = settings.excluded_groups.split("|").map((s) => s.trim()).filter(Boolean);
+    if (excludedGroups.length === 0) {
+      return false;
+    }
+
+    const userGroups = currentUser.groups || [];
+    return userGroups.some((group) =>
+      excludedGroups.includes(group.name) || excludedGroups.includes(String(group.id))
+    );
+  };
+
+  // Check once at init if user is excluded
+  if (isUserExcluded()) {
+    return;
+  }
+
   const isCategoryAllowed = (categoryId) => {
     if (!settings.auto_vote_categories || settings.auto_vote_categories.length === 0) {
       return true;
