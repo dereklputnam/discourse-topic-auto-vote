@@ -110,10 +110,21 @@ export default apiInitializer("1.0", (api) => {
   // Method 1: Listen for topic:created event
   api.onAppEvent("topic:created", (data) => {
     log("topic:created event fired:", data);
+    log("topic:created data keys:", data ? Object.keys(data) : "null");
 
     if (data?.id) {
       const topicId = data.id;
-      const categoryId = data.category_id;
+      // category_id might be in different places depending on Discourse version
+      let categoryId = data.category_id || data.categoryId || data.category?.id;
+
+      // If category_id not in event data, try to get it from composer
+      if (categoryId === undefined) {
+        const composer = api.container.lookup("service:composer");
+        if (composer?.model?.categoryId) {
+          categoryId = composer.model.categoryId;
+          log("Got category from composer:", categoryId);
+        }
+      }
 
       log("New topic created:", { topicId, categoryId });
 
