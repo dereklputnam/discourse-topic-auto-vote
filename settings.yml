@@ -11,8 +11,8 @@ auto_vote_categories:
   description:
     en: "Categories where auto-voting is enabled (leave empty for all voting-enabled categories)"
 
-auto_vote_debug_mode:
+auto_vote_on_visit:
   type: bool
   default: false
   description:
-    en: "Enable console logging for debugging auto-vote behavior"
+    en: "Also auto-vote when users visit their own unvoted topics (not just on creation)"

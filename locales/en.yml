@@ -4,4 +4,4 @@ en:
     settings:
       auto_vote_enabled: "Enable automatic voting on user's own newly created topics"
       auto_vote_categories: "Categories where auto-voting is enabled (leave empty for all voting-enabled categories)"
-      auto_vote_debug_mode: "Enable console logging for debugging auto-vote behavior"
+      auto_vote_on_visit: "Also auto-vote when users visit their own unvoted topics (not just on creation)"
