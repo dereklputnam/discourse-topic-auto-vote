@@ -2,6 +2,5 @@ en:
   theme_metadata:
     description: "Automatically casts a vote for users on topics they create in voting-enabled categories."
     settings:
-      auto_vote_enabled: "Enable automatic voting on user's own newly created topics"
       auto_vote_categories: "Categories where auto-voting is enabled (leave empty for all voting-enabled categories)"
       auto_vote_on_visit: "Retroactively auto-vote on a user's own older topics when they visit them"

@@ -76,10 +76,6 @@ export default apiInitializer("1.0", (api) => {
   };
 
   const castVote = async (topicId) => {
-    if (!settings.auto_vote_enabled) {
-      return false;
-    }
-
     if (autoVotedTopics.has(topicId)) {
       return false;
     }
@@ -124,7 +120,7 @@ export default apiInitializer("1.0", (api) => {
       const categoryId = this.categoryId;
       const savePromise = this._super(opts);
 
-      if (isNewTopic && settings.auto_vote_enabled && isCategoryAllowed(categoryId)) {
+      if (isNewTopic && isCategoryAllowed(categoryId)) {
         savePromise.then((result) => {
           if (result && result.responseJson && result.responseJson.post) {
             const topicId = result.responseJson.post.topic_id;
