@@ -1,0 +1,8 @@
+en:
+  theme_metadata:
+    description: "Automatically casts a vote for users on topics they create in voting-enabled categories."
+    settings:
+      auto_vote_enabled: "Enable automatic voting on user's own newly created topics"
+      auto_vote_category_ids: "Category IDs where auto-voting is enabled (leave empty for all voting-enabled categories). Enter category IDs separated by | (e.g., 5|12|23)"
+      auto_vote_time_window_seconds: "Time window (in seconds) after topic creation during which auto-vote will trigger"
+      auto_vote_debug_mode: "Enable console logging for debugging auto-vote behavior"

@@ -1,0 +1,25 @@
+auto_vote_enabled:
+  type: bool
+  default: true
+  description:
+    en: "Enable automatic voting on user's own newly created topics"
+
+auto_vote_category_ids:
+  type: list
+  default: ""
+  description:
+    en: "Category IDs where auto-voting is enabled (leave empty for all voting-enabled categories). Enter category IDs separated by | (e.g., 5|12|23)"
+
+auto_vote_time_window_seconds:
+  type: integer
+  default: 60
+  min: 10
+  max: 300
+  description:
+    en: "Time window (in seconds) after topic creation during which auto-vote will trigger. Topics older than this won't auto-vote."
+
+auto_vote_debug_mode:
+  type: bool
+  default: false
+  description:
+    en: "Enable console logging for debugging auto-vote behavior"
