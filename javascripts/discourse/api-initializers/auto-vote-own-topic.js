@@ -20,19 +20,58 @@ export default apiInitializer("1.0", (api) => {
 
   const isCategoryAllowed = (categoryId) => {
     if (!settings.auto_vote_categories || settings.auto_vote_categories.length === 0) {
+      log("No category restriction configured, allowing all categories");
       return true;
     }
 
-    const allowedIds = settings.auto_vote_categories
-      .split("|")
-      .map((id) => parseInt(id.trim(), 10))
-      .filter((id) => !isNaN(id));
+    const categorySettings = settings.auto_vote_categories.split("|").map((s) => s.trim()).filter(Boolean);
 
-    if (allowedIds.length === 0) {
+    if (categorySettings.length === 0) {
+      log("Empty category list after parsing, allowing all categories");
       return true;
     }
 
-    return allowedIds.includes(categoryId);
+    log("Category settings value:", settings.auto_vote_categories);
+    log("Parsed category settings:", categorySettings);
+    log("Checking category ID:", categoryId);
+
+    // First try: direct numeric ID match
+    const numericIds = categorySettings.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id));
+    if (numericIds.length > 0 && numericIds.includes(categoryId)) {
+      log("Category matched by numeric ID");
+      return true;
+    }
+
+    // Second try: look up category by ID and match by slug
+    const site = api.container.lookup("service:site");
+    if (site && site.categories) {
+      const category = site.categories.find((c) => c.id === categoryId);
+      if (category) {
+        log("Found category:", { id: category.id, slug: category.slug, name: category.name });
+
+        // Check if the category slug or name matches any setting
+        const lowerSettings = categorySettings.map((s) => s.toLowerCase());
+        if (lowerSettings.includes(category.slug?.toLowerCase()) ||
+            lowerSettings.includes(category.name?.toLowerCase())) {
+          log("Category matched by slug/name");
+          return true;
+        }
+
+        // Also check parent category path (e.g., "products/1secure/ideas")
+        if (category.slug) {
+          const fullSlug = category.parentCategory
+            ? `${category.parentCategory.slug}/${category.slug}`
+            : category.slug;
+          if (lowerSettings.includes(fullSlug.toLowerCase())) {
+            log("Category matched by full slug path");
+            return true;
+          }
+        }
+      }
+    }
+
+    log("Category not matched:", categoryId);
+    return false;
   };
 
   const castVote = async (topicId, source) => {
