@@ -133,31 +133,26 @@ export default apiInitializer("1.0", (api) => {
   };
 
   // Vote immediately when a new topic is created via the composer
-  api.modifyClass("model:composer", {
-    pluginId: "auto-vote-own-topic",
+  api.onAppEvent("composer:created-post", async ({ postId }) => {
+    let post;
+    try {
+      post = await ajax(`/posts/${postId}.json`);
+    } catch (error) {
+      return;
+    }
 
-    save(opts) {
-      const isNewTopic = this.creatingTopic;
-      const categoryId = this.categoryId;
-      const savePromise = this._super(opts);
+    const isNewTopic = post.post_number === 1;
+    const topicId = post.topic_id;
 
-      if (isNewTopic && isCategoryAllowed(categoryId)) {
-        savePromise.then((result) => {
-          if (result && result.responseJson && result.responseJson.post) {
-            const topicId = result.responseJson.post.topic_id;
-            preVotedTopics.add(topicId);
+    if (isNewTopic && isCategoryAllowed(post.category_id)) {
+      preVotedTopics.add(topicId);
 
-            ajax("/voting/vote", {
-              type: "POST",
-              data: { topic_id: topicId },
-            }).catch(() => {
-              preVotedTopics.delete(topicId);
-            });
-          }
-        });
-      }
-
-      return savePromise;
+      ajax("/voting/vote", {
+        type: "POST",
+        data: { topic_id: topicId },
+      }).catch(() => {
+        preVotedTopics.delete(topicId);
+      });
     }
   });
 
